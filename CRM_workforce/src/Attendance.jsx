@@ -85,7 +85,7 @@ const Attendance = () => {
   };
 
   const processedData = getChartData();
-console.log(processedData, "Data")
+
   if (loading) return <Box display="flex" justifyContent="center" m={5}><CircularProgress /></Box>;
 
   return (
@@ -175,33 +175,45 @@ console.log(processedData, "Data")
         }}
       >
         <Box sx={{ width: '100%', flexGrow: 1 }}>
-          <BarChart
-            dataset={processedData}
-            xAxis={[{ 
-              scaleType: 'band', 
-              dataKey: 'name', 
-              label: 'Staff Members',
-              tickLabelStyle: {
-                angle: 45,  
-                textAnchor: 'start',
-                fontSize: 12,
-              },
-            }]}
-            series={[
-              { dataKey: 'present', label: 'Present', color: '#2e7d32' },
-              { dataKey: 'absent', label: 'Absent', color: '#d32f2f' },
-              { dataKey: 'late', label: 'Late', color: '#ed6c02' },
-            ]}
-             height={500} 
-            margin={{ top: 50, bottom: 80, left: 60, right: 20 }}
-            slotProps={{
-              legend: {
-                direction: 'row',
-                position: { vertical: 'top', horizontal: 'middle' },
-                padding: 0,
-              },
-            }}
-          />
+           <BarChart
+      dataset={processedData}
+      xAxis={[{ scaleType: 'band', dataKey: 'name' }]}
+      series={[
+        { dataKey: 'present', label: 'Present', color: '#4caf50' },
+        { dataKey: 'absent', label: 'Absent', color: '#f44336' },
+        { dataKey: 'late', label: 'Late', color: '#ff9800' },
+      ]}
+      width={600}
+      height={300}
+    />
+        </Box>
+      </Card>
+    </Grid>
+  </Grid>
+   <Grid container spacing={2}>
+    <Grid item xs={12}>
+      <Card 
+        sx={{ 
+          p: 2, 
+          width: '100%', 
+          minHeight: '70vh', 
+          display: 'flex', 
+          flexDirection: 'column',
+          boxShadow: 3 
+        }}
+      >
+        <Box sx={{ width: '100%', flexGrow: 1 }}>
+    <BarChart
+  dataset={processedData}
+  xAxis={[{ scaleType: 'band', dataKey: 'name' }]}
+  series={[
+    { dataKey: 'present', label: 'Present', stack: 'total' },
+    { dataKey: 'absent', label: 'Absent', stack: 'total' },
+    { dataKey: 'late', label: 'Late', stack: 'total' },
+  ]}
+  width={600}
+  height={300}
+/>
         </Box>
       </Card>
     </Grid>

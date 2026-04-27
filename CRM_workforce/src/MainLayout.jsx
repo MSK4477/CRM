@@ -71,8 +71,7 @@ const MainLayout = () => {
         </Toolbar>
       </AppBar>
 
-      {/* Responsive Drawer */}
-      <Box component="nav" sx={{ width: { sm: drawerWidth }, flexShrink: { sm: 0 } }}>
+       <Box component="nav" sx={{ width: { sm: drawerWidth }, flexShrink: { sm: 0 } }}>
         <Drawer
           variant="temporary"
           open={mobileOpen}
@@ -91,9 +90,9 @@ const MainLayout = () => {
         </Drawer>
       </Box>
 
-      {/* Main Content Area */}
+      
       <Box component="main" sx={{ flexGrow: 1, p: 3, width: { sm: `calc(100% - ${drawerWidth}px)` } }}>
-        <Toolbar /> {/* Spacer for AppBar */}
+        <Toolbar />  
         <Outlet /> 
       </Box>
     </Box>
