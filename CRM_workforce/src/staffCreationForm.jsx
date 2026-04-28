@@ -24,14 +24,21 @@ const StaffForm = ({ editData, onSuccess, onCancel }) => {
   }, [editData]);
 
   const handleChange = (e) => {
+    if(activeStep === 1 && !formData.employeeId){
+        if(!editData){
+      setFormData(prev => ({
+        ...prev, 
+        employeeId: `EMP-${staffs.length + 1}`
+      }));
+    }
+    }
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
      if (errors[name]) {
       setErrors(prev => ({ ...prev, [name]: "" }));
     }
   };
-
- const validate = () => {
+  const validate = () => {
   let tempErrors = {};
 
    if (activeStep === 0) {
@@ -49,7 +56,7 @@ const StaffForm = ({ editData, onSuccess, onCancel }) => {
       tempErrors.phone = "Enter a valid 10-digit phone number";
     }
 
-    if (!formData.employeeId) tempErrors.employeeId = "Employee ID is required";
+    // if (!formData.employeeId) tempErrors.employeeId = "Employee ID is required";
     if (!formData.role) tempErrors.role = "Job role is required";
     if (!formData.department) tempErrors.department = "Please select a department";
     if (!formData.joiningDate) tempErrors.joiningDate = "Joining date is required";
@@ -111,7 +118,7 @@ const StaffForm = ({ editData, onSuccess, onCancel }) => {
       tempErrors.phone = "Enter a valid 10-digit phone number";
     }
 
-    if (!formData.employeeId) tempErrors.employeeId = "Employee ID is required";
+    // if (!formData.employeeId) tempErrors.employeeId = "Employee ID is required";
     if (!formData.role) tempErrors.role = "Job role is required";
     if (!formData.department) tempErrors.department = "Please select a department";
     if (!formData.joiningDate) tempErrors.joiningDate = "Joining date is required";
@@ -168,9 +175,23 @@ const StaffForm = ({ editData, onSuccess, onCancel }) => {
     setErrors({});  
     setActiveStep((prev) => prev - 1);
   };
+const MOCK_API_URL = 'https://69ebaf0897482ad5c527fdb2.mockapi.io/staff';
+  const [staffs, setStaffs] = useState([]);
+  const fetchStaffs = async () => {
+    setLoading(true);
+    try {
+      const res = await axios.get(MOCK_API_URL);
+      setStaffs(res.data);
+    } catch (err) {
+      console.error("Error fetching staff", err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  useEffect(() => { fetchStaffs(); }, []);
   const handleSubmit = async () => {
-    console.log(formData)
+
     if (validate()) {
       setLoading(true);
       try {
@@ -208,10 +229,10 @@ const StaffForm = ({ editData, onSuccess, onCancel }) => {
           <Grid item xs={12} sm={4}>
             <TextField fullWidth label="Phone" error={!!errors.phone} name="phone" value={formData.phone} onChange={handleChange} helperText={errors.phone} />
           </Grid>
-          <Grid item xs={12} sm={4}>
+          {/* <Grid item xs={12} sm={4}>
             <TextField fullWidth label="Employee ID" name="employeeId" value={formData.employeeId} onChange={handleChange} 
               error={!!errors.employeeId} helperText={errors.employeeId} />
-          </Grid>
+          </Grid> */}
           <Grid item xs={12} sm={4}>
             <TextField fullWidth label="Role" error={!!errors.role} name="role" value={formData.role} onChange={handleChange} helperText={errors.role} />
           </Grid>

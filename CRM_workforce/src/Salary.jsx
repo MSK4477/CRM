@@ -4,7 +4,8 @@ import {
   Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
   Paper, Typography, Box, CircularProgress, Button, Dialog, 
   DialogTitle, DialogContent, List, ListItem, ListItemButton, 
-  ListItemText, ListItemIcon, Divider, IconButton
+  ListItemText, ListItemIcon, Divider, IconButton,
+  InputLabel, FormControl, Select, MenuItem
 } from '@mui/material';
 import { 
   Payments, Download, PictureAsPdf, Description, 
@@ -19,11 +20,10 @@ const ATTENDANCE_API = 'https://69ebaf0897482ad5c527fdb2.mockapi.io/attendance';
 const SalaryModule = () => {
   const [loading, setLoading] = useState(true);
   const [salaryData, setSalaryData] = useState([]);
-  
-  
   const [openDialog, setOpenDialog] = useState(false);
   const [dialogStep, setDialogStep] = useState('format'); 
   const [selectedRow, setSelectedRow] = useState(null);
+  const [selectedDept, setSelectedDept] = useState('All');
 
   useEffect(() => { calculateSalaries(); }, []);
 
@@ -36,7 +36,7 @@ const SalaryModule = () => {
       ]);
 
       const computed = staffRes.data.map(member => {
-        const history = attRes.data.filter(a => a.staffId === member.id);
+        const history = attRes.data.filter(a => String(a.staffId) === String(member.id));
         const presentCount = history.filter(a => a.status === 'Present').length;
         const absentCount = history.filter(a => a.status === 'Absent').length;
         const lateCount = history.filter(a => a.status === 'Late').length;
@@ -83,15 +83,15 @@ const SalaryModule = () => {
     doc.setFontSize(11);
     doc.text(`Employee Name: ${row.name}`, 20, 40);
     doc.text(`Employee ID: ${row.employeeId}`, 20, 48);
-    doc.text(`Style Version: ${style.toUpperCase()}`, 20, 56);
+    doc.text(`Department: ${row.department}`, 20, 56);
 
     autoTable(doc, {
       startY: 65,
       head: [['Description', 'Details']],
       body: [
-        ['Present Days', row.present],
-        ['Absent Days', row.absent],
-        ['Late Days', row.late],
+        ['Present Days', `${row.present} Days`],
+        ['Absent Days', `${row.absent} Days`],
+        ['Late Days (Half Pay)', `${row.late} Days`],
         ['Base Salary', `Rs. ${row.baseSalary}`],
         ['Allowances', `Rs. ${row.allowances || 0}`],
         ['Deductions', `Rs. ${row.deductions || 0}`],
@@ -101,7 +101,7 @@ const SalaryModule = () => {
       headStyles: { fillColor: headerColor } 
     });
 
-    doc.save(`SalarySlip_${style}_${row.name}.pdf`);
+    doc.save(`SalarySlip_${row.name}.pdf`);
     handleClose();
   };
 
@@ -118,12 +118,27 @@ const SalaryModule = () => {
   };
 
   if (loading) return <Box display="flex" justifyContent="center" m={5}><CircularProgress /></Box>;
+  
+  const departments = ['All', ...new Set(salaryData.map(s => s.department))];
 
   return (
     <Box p={3}>
-      <Typography variant="h4" gutterBottom sx={{ fontWeight: 'bold', color: '#2e7d32', display: 'flex', alignItems: 'center', gap: 2 }}>
-        <Payments fontSize="large" /> Payroll Management
-      </Typography>
+      <Box display="flex" justifyContent="space-between" alignItems="center" mb={3} flexWrap="wrap" gap={2}>
+        <Typography variant="h4" sx={{ fontWeight: 'bold', color: '#2e7d32', display: 'flex', alignItems: 'center', gap: 2 }}>
+          <Payments fontSize="large" /> Payroll Management
+        </Typography>
+
+        <FormControl size="small" sx={{ minWidth: 220 }}>
+          <InputLabel>Filter by Department</InputLabel>
+          <Select
+            value={selectedDept}
+            label="Filter by Department"
+            onChange={(e) => setSelectedDept(e.target.value)}
+          >
+            {departments.map(dept => <MenuItem key={dept} value={dept}>{dept}</MenuItem>)}
+          </Select>
+        </FormControl>
+      </Box>
 
       <TableContainer component={Paper} elevation={4}>
         <Table>
@@ -136,43 +151,35 @@ const SalaryModule = () => {
             </TableRow>
           </TableHead>
           <TableBody>
-            {salaryData.map((row) => (
-              <TableRow key={row.id}>
-                <TableCell>
-                  <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>{row.name}</Typography>
-                  <Typography variant="caption" color="textSecondary">{row.department} | ID: {row.employeeId}</Typography>
-                </TableCell>
-                <TableCell align="center">{row.present}P / {row.absent}A / {row.late}L</TableCell>
-                <TableCell align="center" sx={{ fontWeight: 'bold', color: 'primary.main' }}>₹{row.netSalary}</TableCell>
-                <TableCell align="center">
-                  <Button 
-                    variant="contained" 
-                    size="small" 
-                    startIcon={<Download />} 
-                    onClick={() => handleOpenDownload(row)}
-                  >
-                    Download
-                  </Button>
-                </TableCell>
-              </TableRow>
-            ))}
+            {salaryData
+              .filter(item => selectedDept === 'All' || item.department === selectedDept)
+              .map((row) => (
+                <TableRow key={row.id} sx={{ '&:hover': { bgcolor: '#f5f5f5' } }}>
+                  <TableCell>
+                    <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>{row.name}</Typography>
+                    <Typography variant="caption" color="textSecondary">{row.department} | ID: {row.employeeId}</Typography>
+                  </TableCell>
+                  <TableCell align="center">{row.present}P / {row.absent}A / {row.late}L</TableCell>
+                  <TableCell align="center" sx={{ fontWeight: 'bold', color: 'primary.main' }}>₹{row.netSalary}</TableCell>
+                  <TableCell align="center">
+                    <Button 
+                      variant="contained" 
+                      size="small" 
+                      startIcon={<Download />} 
+                      onClick={() => handleOpenDownload(row)}
+                    >
+                      Download
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))}
           </TableBody>
         </Table>
       </TableContainer>
 
-       
       <Dialog open={openDialog} onClose={handleClose} fullWidth maxWidth="xs">
         <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontWeight: 'bold' }}>
-          {dialogStep === 'format' ? (
-            'Choose Format'
-          ) : (
-            <Box display="flex" alignItems="center">
-              <IconButton onClick={() => setDialogStep('format')} sx={{ mr: 1 }} size="small">
-                <ArrowBack />
-              </IconButton>
-              PDF Layouts
-            </Box>
-          )}
+          {dialogStep === 'format' ? 'Choose Format' : 'PDF Layouts'}
           <IconButton onClick={handleClose} size="small"><Close /></IconButton>
         </DialogTitle>
         
@@ -198,21 +205,28 @@ const SalaryModule = () => {
             ) : (
               <>
                 <ListItem disablePadding>
+                    <ListItemButton onClick={() => setDialogStep('format')}>
+                        <ListItemIcon><ArrowBack /></ListItemIcon>
+                        <ListItemText primary="Back" />
+                    </ListItemButton>
+                </ListItem>
+                <Divider />
+                <ListItem disablePadding>
                   <ListItemButton onClick={() => downloadPDF(selectedRow, 'classic')}>
                     <ListItemIcon><ListAlt color="success" /></ListItemIcon>
-                    <ListItemText primary="Classic Green" secondary="Standard professional layout" />
+                    <ListItemText primary="Classic Green" />
                   </ListItemButton>
                 </ListItem>
                 <ListItem disablePadding>
                   <ListItemButton onClick={() => downloadPDF(selectedRow, 'modern')}>
                     <ListItemIcon><GridView color="primary" /></ListItemIcon>
-                    <ListItemText primary="Modern Blue" secondary="Clean corporate design" />
+                    <ListItemText primary="Modern Blue" />
                   </ListItemButton>
                 </ListItem>
                 <ListItem disablePadding>
                   <ListItemButton onClick={() => downloadPDF(selectedRow, 'minimal')}>
-                    <ListItemIcon><Article color="action" /></ListItemIcon>
-                    <ListItemText primary="Minimalist" secondary="Ink-friendly simple design" />
+                    <ListItemIcon><Article sx={{ color: '#555' }} /></ListItemIcon>
+                    <ListItemText primary="Minimalist" />
                   </ListItemButton>
                 </ListItem>
               </>
